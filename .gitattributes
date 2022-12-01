@@ -1,0 +1,2 @@
+ShootingGameBP/Content/ filter=lfs diff=lfs merge=lfs -text
+ShootingGameCpp/Content/ filter=lfs diff=lfs merge=lfs -text
