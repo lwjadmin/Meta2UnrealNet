@@ -16,5 +16,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void AddHeal(float HealVal);
 	virtual void AddHeal_Implementation(float HealVal) {};
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void AddMag();
+	virtual void AddMag_Implementation() {};
 public:
 };

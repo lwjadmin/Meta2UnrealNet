@@ -30,6 +30,8 @@ public:
 	FORCEINLINE float GetMaxHp() const { return MaxHp; }
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE int GetMag() const { return Mag; }
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsCanUseMag() const { return Mag > 0 ? true : false; }
 public:
 	UFUNCTION()
 	void OnRep_CurHp();
@@ -43,6 +45,8 @@ public:
 	void AddHeal(float HealVal);
 	UFUNCTION(BlueprintCallable)
 	void AddMag();
+	UFUNCTION(BlueprintCallable)
+	void UseMag();
 
 	//이벤트디스패처 - HP업데이트 객체
 	FDele_Multi_UpdateHp_TwoParams Fuc_Dele_UpdateHp_TwoParams;

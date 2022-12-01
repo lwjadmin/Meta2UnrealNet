@@ -34,6 +34,14 @@ void AWeaponBurst::PressTrigger_Implementation(bool bIsPressed)
 
 void AWeaponBurst::BurstShooting()
 {
+	if (OwnChar == nullptr)
+	{
+		//Fire버튼 뗐을 때 BurstShooting 타이머 종료
+		FTimerManager& timerManager = GetWorld()->GetTimerManager();
+		timerManager.ClearTimer(th_BurstShooting);
+		return;
+	}
 	//AnimMontage 실행, Animation Blueprint : AnimNotify에서 Weapon::NotifyShoot 함수 호출
 	OwnChar->PlayAnimMontage(WeaponData->ShootMontage);
 }
+	

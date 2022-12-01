@@ -19,5 +19,8 @@ class SHOOTINGGAME_API UShootingGameInstance : public UGameInstance
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UDataTable* WeaponTable;
+
 	FST_Weapon* GetWeaponRowData(FName name);
+	
+	FName GetWeaponRandomRowName();
 };

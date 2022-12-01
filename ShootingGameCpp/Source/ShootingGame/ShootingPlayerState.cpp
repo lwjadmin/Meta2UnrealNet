@@ -59,3 +59,12 @@ void AShootingPlayerState::AddMag()
 	Mag = Mag + 1;
 	OnRep_Mag();
 }
+
+void AShootingPlayerState::UseMag()
+{
+	if (IsCanUseMag())
+	{
+		Mag -= 1;
+		OnRep_Mag();
+	}
+}

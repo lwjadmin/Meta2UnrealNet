@@ -1,6 +1,7 @@
 
 #include "Weapon.h"
 #include "ShootingGameHUD.h"
+#include "ShootingPlayerState.h"
 #include "GameFramework/Character.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,9 +14,15 @@ AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Audio = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio"));
+
 	RootComponent = Mesh;
-    Audio = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio"));
-    Audio->SetupAttachment(RootComponent);
+	Audio->SetupAttachment(RootComponent);
+
+	//Custom Collision Profile : Weapon 설정
+	Mesh->SetCollisionProfileName("Weapon");
+	//초기상태 : SetSimulatePhysics = true로 체크하여 땅바닥에 떨어지도록 설정
+	Mesh->SetSimulatePhysics(true);
 	//Weapon Actor 자체를 Replicate 처리하여 서버/클라이언트에서 모두 보이도록 true 체크
 	bReplicates = true;
 	//Weapon Actor 위치가 움직였을 경우 서버/클라 모두 동일하게 움직이기 위해 true 체크
@@ -36,19 +43,6 @@ void AWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetim
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	WeaponData = Cast<UShootingGameInstance>(GetGameInstance())->GetWeaponRowData(RowName);
-	if (WeaponData)
-	{
-		Mesh->SetStaticMesh(WeaponData->StaticMesh);
-		Audio->SetSound(WeaponData->SoundBase);
-		//Custom Collision Profile : Weapon 설정
-		Mesh->SetCollisionProfileName("Weapon");
-		//초기상태 : SetSimulatePhysics = true로 체크하여 땅바닥에 떨어지도록 설정
-		Mesh->SetSimulatePhysics(true);
-		Ammo = WeaponData->MaxAmmo;
-		Damage = WeaponData->Damage;
-	}
 }
 
 // Called every frame
@@ -69,7 +63,11 @@ void AWeapon::PressTrigger_Implementation(bool IsPressed)
 
 void AWeapon::PressReload_Implementation()
 {
-	OwnChar->PlayAnimMontage(WeaponData->ReloadMontage);
+	AShootingPlayerState* ps = Cast<AShootingPlayerState>(OwnChar->GetPlayerState());
+	if (ps && ps->IsCanUseMag())
+	{
+		OwnChar->PlayAnimMontage(WeaponData->ReloadMontage);
+	}
 }
 
 void AWeapon::NotifyReload_Implementation()
@@ -81,6 +79,11 @@ void AWeapon::DoReload()
 {
 	this->Ammo = WeaponData->MaxAmmo;
 	OnRep_Ammo();
+	AShootingPlayerState* ps = Cast<AShootingPlayerState>(OwnChar->GetPlayerState());
+	if (ps)
+	{
+		ps->UseMag();
+	}
 }
 
 void AWeapon::IsCanUse_Implementation(bool& bCanUse)
@@ -91,6 +94,19 @@ void AWeapon::IsCanUse_Implementation(bool& bCanUse)
 void AWeapon::OnRep_Ammo()
 {
 	UpdateAmmoUI(this->Ammo);
+}
+
+void AWeapon::OnRep_RowName()
+{
+	UShootingGameInstance* gameInstance = Cast< UShootingGameInstance>(GetGameInstance());
+	if (gameInstance)
+	{
+		WeaponData = gameInstance->GetWeaponRowData(RowName);
+		Mesh->SetStaticMesh(WeaponData->StaticMesh);
+		Audio->SetSound(WeaponData->SoundBase);
+		Ammo = WeaponData->MaxAmmo;
+		Damage = WeaponData->Damage;
+	}
 }
 
 void AWeapon::UpdateAmmoUI(int InAmmo)
@@ -123,6 +139,12 @@ bool AWeapon::UseAmmo()
 	Ammo = Ammo - 1;
 	OnRep_Ammo();
 	return true;
+}
+
+void AWeapon::SetRowName(FName name)
+{ 
+	RowName = name;
+	OnRep_RowName();
 }
 
 void AWeapon::NotifyShoot_Implementation()

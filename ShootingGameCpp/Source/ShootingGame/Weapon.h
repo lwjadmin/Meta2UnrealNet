@@ -7,6 +7,7 @@
 #include "Engine/DataTable.h"
 #include "Weapon.generated.h"
 
+
 //블루프린트 사용 가능 구조체/블루프린트 데이터테이블을 사용하기 위해 FTableRowBase 상속
 USTRUCT(BlueprintType)
 struct FST_Weapon : public FTableRowBase
@@ -20,7 +21,8 @@ public:
         SoundBase(nullptr),
         FireEffect(nullptr),
         MaxAmmo(30),
-        Damage(10)
+        Damage(10),
+        WeaponClass(nullptr)
     {}
     //총의 메쉬
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -43,6 +45,9 @@ public:
     //대미지
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Damage;
+    //
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AWeapon> WeaponClass;
 };
 
 //IWeaponInterface 상속!
@@ -58,10 +63,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UAudioComponent* Audio;
     //
-    UPROPERTY(Replicated, BlueprintReadWrite, Meta = (ExposeOnSpawn = "true"))
+    UPROPERTY(Replicated, BlueprintReadWrite)
     ACharacter* OwnChar;
     //
-    UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = "true"))
+    UPROPERTY(ReplicatedUsing = OnRep_RowName)
     FName RowName;
     //
     FST_Weapon* WeaponData;
@@ -95,9 +100,14 @@ public:
     //Ammo : OnReplicateNotify
     UFUNCTION()
     void OnRep_Ammo();
+    UFUNCTION()
+    void OnRep_RowName();
+
     void UpdateAmmoUI(int Ammo);
     void ShowShootingEffect();
     bool UseAmmo();
+    void SetRowName(FName name);
+
     //--RELOAD------------------------------------------------------
     //Anim Montage Play!
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
